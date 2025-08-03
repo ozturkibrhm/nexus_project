@@ -26,7 +26,7 @@ spec:
               done
       containers:
         - name: consumer
-          image: ibrahimozturk15/consumer:latest
+          image: i********/consumer:latest
           imagePullPolicy: Always
           command: ["python", "consumer.py"]
           env:
@@ -35,10 +35,10 @@ spec:
             - name: KAFKA_TOPIC
               value: "wcenter-data"
             - name: POSTGRES_DB
-              value: "mydatabase"
+              value: "*************"
             - name: POSTGRES_USER
-              value: "myuser"
+              value: "*********"
             - name: POSTGRES_PASSWORD
-              value: "mypassword"
+              value: "********"
             - name: POSTGRES_HOST
               value: "postgres"
