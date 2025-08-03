@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: input-producer
+  namespace: nexus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: input-producer
+  template:
+    metadata:
+      labels:
+        app: input-producer
+    spec:
+      # 1) Kafka broker hazır olana dek pod’u başlatma
+      initContainers:
+        - name: wait-for-kafka
+          image: busybox:1.35
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z kafka 29092; do
+                echo "[wait] Kafka broker hazır değil, 5s bekleniyor..."
+                sleep 5
+              done
+
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+
+      containers:
+        - name: input-service
+          image: ibrahimozturk15/input-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka:29092"
+          volumeMounts:
+            - name: shared-data
+              mountPath: /app/output
+
+        - name: producer
+          image: ibrahimozturk15/producer:latest
+          imagePullPolicy: Always
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC
+              value: "wcenter-data"
+          volumeMounts:
+            - name: shared-data
+              mountPath: /app/shared_input
+          # 2) secrets.json gelene kadar ve Kafka hazır olduktan sonra çalıştır
+          command:
+            - sh
+            - -c
+            - |
+              echo "🔍 secrets.json bekleniyor..."
+              while [ ! -f /app/shared_input/secrets.json ]; do
+                sleep 2
+              done
+              echo "✅ secrets.json bulundu, producer başlıyor."
+              exec python producer.py \
+                "213.153.197.248" "9889" "root" "Duosis123!" \
+                "/app/shared_input/secrets.json"

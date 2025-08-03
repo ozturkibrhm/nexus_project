@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer
+  namespace: nexus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer
+  template:
+    metadata:
+      labels:
+        app: consumer
+    spec:
+      initContainers:
+        - name: wait-for-kafka
+          image: busybox:1.35
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z kafka 29092; do
+                echo "[wait] Kafka broker hazır değil, 5s bekleniyor..."
+                sleep 5
+              done
+      containers:
+        - name: consumer
+          image: ibrahimozturk15/consumer:latest
+          imagePullPolicy: Always
+          command: ["python", "consumer.py"]
+          env:
+            - name: KAFKA_BROKER
+              value: "kafka:29092"
+            - name: KAFKA_TOPIC
+              value: "wcenter-data"
+            - name: POSTGRES_DB
+              value: "mydatabase"
+            - name: POSTGRES_USER
+              value: "myuser"
+            - name: POSTGRES_PASSWORD
+              value: "mypassword"
+            - name: POSTGRES_HOST
+              value: "postgres"

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Vault Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <h1 class="text-3xl font-bold text-center mb-6">Vault Admin Panel</h1>
+  
+  <div id="recordList" class="grid gap-4 max-w-2xl mx-auto"></div>
+
+  <script>
+    async function fetchAllKeys() {
+      const res = await fetch('/all-secrets');
+      const keys = await res.json();
+
+      const container = document.getElementById('recordList');
+      container.innerHTML = '';
+
+      for (const key of keys) {
+        const dataRes = await fetch(`/secret/${key}`);
+        const data = await dataRes.json();
+
+        const card = document.createElement('div');
+        card.className = "bg-white shadow-md rounded-xl p-4 border border-gray-200";
+
+        card.innerHTML = `
+          <h2 class="font-bold text-lg mb-2 text-indigo-600">${key}</h2>
+          <pre class="bg-gray-100 p-2 rounded text-sm overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+        `;
+
+        container.appendChild(card);
+      }
+    }
+
+    fetchAllKeys();
+  </script>
+</body>
+</html>

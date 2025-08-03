@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: input-service
+  namespace: nexus
+spec:
+  selector:
+    app: input-service
+  ports:
+    - name: http
+      protocol: TCP
+      port: 4000
+      targetPort: 4000
+      nodePort: 30400  # isteğe bağlı port (30000–32767 arası)
+  type: NodePort

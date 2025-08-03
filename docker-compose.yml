@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-net
+
+  kafka:
+    image: wurstmeister/kafka
+    hostname: kafka
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-net
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - kafka-net
+
+  consumer:
+    build: ./consumer
+    environment:
+      KAFKA_BROKER: kafka:29092
+      KAFKA_TOPIC: wcenter-data
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: postgres
+    depends_on:
+      - kafka
+      - postgres
+    networks:
+      - kafka-net
+    command: ["python", "wait_for_kafka.py"]
+
+
+  producer:
+    build: ./producer
+    volumes:
+      - shared-data:/app/shared_input
+    environment:
+      KAFKA_BROKER: kafka:29092
+      KAFKA_TOPIC: wcenter-data
+    depends_on:
+      - kafka
+    networks:
+      - kafka-net
+    command: ["213.153.197.248", "9889", "root", "Duosis123!", "shared_input/secrets.json"]
+
+  input-service:
+    build: ./input-service
+    networks:
+      - kafka-net
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:29092
+    volumes:
+      - shared-data:/app/output
+
+networks:
+  kafka-net:
+
+volumes:
+  shared-data:
