@@ -63,7 +63,7 @@ services:
       - kafka
     networks:
       - kafka-net
-    command: ["213.153.197.248", "9889", "root", "Duosis123!", "shared_input/secrets.json"]
+    command: ["id", "port", "users", "password", "shared_input/secrets.json"]
 
   input-service:
     build: ./input-service
