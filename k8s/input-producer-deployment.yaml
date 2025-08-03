@@ -32,7 +32,7 @@ spec:
 
       containers:
         - name: input-service
-          image: ibrahimozturk15/input-service:latest
+          image: ib*********/input-service:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
@@ -44,7 +44,7 @@ spec:
               mountPath: /app/output
 
         - name: producer
-          image: ibrahimozturk15/producer:latest
+          image: i************/producer:latest
           imagePullPolicy: Always
           env:
             - name: KAFKA_BROKER
